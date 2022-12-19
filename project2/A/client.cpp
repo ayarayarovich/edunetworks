@@ -54,13 +54,17 @@ int main()
         return 1;
     }
 
-    for (;;) {
+    for (;;){
         std::cout << "Enter the message: ";
         std::string msg;
         std::getline(std::cin, msg);
         if (msg == "quit")
         {
             break;
+        }
+
+        if (msg.size() == 0) {
+            continue;
         }
 
         send(sock, msg.c_str(), msg.size(), 0);

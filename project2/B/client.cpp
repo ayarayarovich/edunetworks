@@ -32,7 +32,7 @@ int main()
     std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> theirAddrInfo(nullptr, &freeaddrinfo);
     addrinfo hints{};
     std::memset(&hints, 0, sizeof(addrinfo));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_protocol = 0;
 

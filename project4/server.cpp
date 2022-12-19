@@ -93,6 +93,14 @@ int main()
         return 1;
     }
 
+    std::thread ioThread([listeningSocket]() {
+        std::string command;
+        do
+        {
+            std::cin >> command;
+        } while (command != "quit");
+        closesocket(listeningSocket);
+        });
 
     std::vector<pollfd> pollFds{
             {
@@ -102,15 +110,6 @@ int main()
             }
     };
 
-    std::thread ioThread([listeningSocket]() {
-        std::string command;
-        do
-        {
-            std::cin >> command;
-        } while (command != "quit");
-        closesocket(listeningSocket);
-    });
-
     while (!pollFds.empty())
     {
         int activeSocketsCount = WSAPoll(pollFds.data(), pollFds.size(), -1);
@@ -119,6 +118,7 @@ int main()
             std::cerr << "WSAPoll() failed: " << WSAGetLastError() << std::endl;
             return 1;
         }
+
         if (activeSocketsCount > 0)
         {
             for (int i = 0; i < pollFds.size(); ++i)

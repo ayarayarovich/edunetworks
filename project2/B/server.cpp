@@ -33,6 +33,14 @@ void *get_in_addr(sockaddr *sa)
     return &(((sockaddr_in6 *)sa)->sin6_addr);
 }
 
+int get_port(sockaddr* sa) {
+    if (sa->sa_family == AF_INET)
+    {
+        return ntohs(((sockaddr_in*)sa)->sin_port);
+    }
+    return ntohs(((sockaddr_in6*)sa)->sin6_port);
+}
+
 int main()
 {
     WSAStartupGuard wsaStartupGuard{};
@@ -48,7 +56,7 @@ int main()
     std::unique_ptr<addrinfo, decltype(&freeaddrinfo)> myAddrInfo(nullptr, &freeaddrinfo);
     addrinfo hints{};
     std::memset(&hints, 0, sizeof(addrinfo));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_protocol = 0;
     hints.ai_flags = AI_PASSIVE;
@@ -96,8 +104,8 @@ int main()
         {
             buffer[bytesReceived] = '\0';
             std::cout << "Echo to ("
-                << inet_ntop(theirAddr.ss_family, get_in_addr((sockaddr *)&theirAddr), clientIP, INET6_ADDRSTRLEN)
-                << "): " << buffer << std::endl;
+                << inet_ntop(theirAddr.ss_family, get_in_addr((sockaddr *)&theirAddr), clientIP, INET6_ADDRSTRLEN) << ", "
+                << get_port((sockaddr*)&theirAddr) << "): " << buffer << std::endl;
 
             if (sendto(listeningSocket, buffer, bytesReceived, 0, reinterpret_cast<sockaddr *>(&theirAddr), theirAddrLen) == SOCKET_ERROR)
             {

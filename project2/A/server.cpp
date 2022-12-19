@@ -88,56 +88,59 @@ int main()
         return 1;
     }
 
-    sockaddr_storage theirAddr{};
-    int theirAddrLen = sizeof theirAddr;
-    SOCKET newSocket = accept(listeningSocket, reinterpret_cast<sockaddr *>(&theirAddr), &theirAddrLen);
+    for (;;) {
+        sockaddr_storage theirAddr{};
+        int theirAddrLen = sizeof theirAddr;
+        SOCKET newSocket = accept(listeningSocket, reinterpret_cast<sockaddr*>(&theirAddr), &theirAddrLen);
 
-    if (newSocket == INVALID_SOCKET)
-    {
-        std::cerr << "accept() failed: " << WSAGetLastError() << std::endl;
-    }
-    else
-    {
-        char clientIP[INET6_ADDRSTRLEN];
-        std::cout << "Got new connection from "
-                  << inet_ntop(theirAddr.ss_family, get_in_addr((sockaddr *)&theirAddr), clientIP, INET6_ADDRSTRLEN)
-                  << " on socket " << newSocket << "\n\n\n";
-    }
-
-    char buffer[MAX_BUFFER_SIZE + 1];
-    for(;;) {
-        int bytesReceived = recv(newSocket, buffer, MAX_BUFFER_SIZE, 0);
-        if (bytesReceived <= 0)
+        if (newSocket == INVALID_SOCKET)
         {
-            // Socket either hung up or error, either way close it and remove from pollFds
-            if (bytesReceived == 0)
-            {
-                std::cout << "Socket " << newSocket << " hung up" << std::endl;
-            }
-            else
-            {
-                std::cerr << "recv() failed: " << WSAGetLastError() << std::endl;
-            }
-            break;
+            std::cerr << "accept() failed: " << WSAGetLastError() << std::endl;
         }
         else
         {
-            buffer[bytesReceived] = '\0';
-            std::cout << "Got message: " << buffer << std::endl;
+            char clientIP[INET6_ADDRSTRLEN];
+            std::cout << "Got new connection from "
+                << inet_ntop(theirAddr.ss_family, get_in_addr((sockaddr*)&theirAddr), clientIP, INET6_ADDRSTRLEN)
+                << " on socket " << newSocket << "\n\n\n";
+        }
 
-            std::cout << "Enter message: ";
-            std::string message;
-            std::getline(std::cin, message);
-
-            if (message == "quit") {
+        char buffer[MAX_BUFFER_SIZE + 1];
+        for (;;) {
+            int bytesReceived = recv(newSocket, buffer, MAX_BUFFER_SIZE, 0);
+            if (bytesReceived <= 0)
+            {
+                // Socket either hung up or error, either way close it and remove from pollFds
+                if (bytesReceived == 0)
+                {
+                    std::cout << "Socket " << newSocket << " hung up" << std::endl;
+                }
+                else
+                {
+                    std::cerr << "recv() failed: " << WSAGetLastError() << std::endl;
+                }
                 break;
             }
-
-            if (send(newSocket, message.c_str(), (int)message.size(), 0) == SOCKET_ERROR)
+            else
             {
-                std::cerr << "send() failed: " << WSAGetLastError() << std::endl;
+                buffer[bytesReceived] = '\0';
+                std::cout << "Got message: " << buffer << std::endl;
+
+                std::cout << "Enter message: ";
+                std::string message;
+                std::getline(std::cin, message);
+
+                if (message == "quit") {
+                    break;
+                }
+
+                if (send(newSocket, message.c_str(), (int)message.size(), 0) == SOCKET_ERROR)
+                {
+                    std::cerr << "send() failed: " << WSAGetLastError() << std::endl;
+                }
             }
         }
+
     }
 
     return 0;
